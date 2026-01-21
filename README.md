@@ -94,12 +94,6 @@ Switch one side     →    INx terminal
 Switch other side   →    GND terminal
 ```
 
-For voltage-triggered inputs (5-24V signal):
-```
-Signal +    →    INx terminal
-Signal -    →    GND/COM terminal
-```
-
 ## Modbus Register Map
 
 This is the **critical information** that's missing from all documentation:
