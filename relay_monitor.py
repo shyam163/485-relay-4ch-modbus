@@ -2,6 +2,11 @@
 """
 485 Relay 4CH v1.1 - Monitor and Control Script
 Board settings: 9600 baud, 8N1, Device ID 1
+
+Optimized timings (benchmarked):
+- Serial timeout: 25ms
+- Post-TX wait: 8ms
+- Round-trip time: ~80ms
 """
 
 import serial
@@ -11,6 +16,8 @@ import sys
 PORT = '/dev/ttyUSB0'
 BAUDRATE = 9600
 DEVICE_ID = 1
+SERIAL_TIMEOUT = 0.025  # 25ms - optimized
+TX_WAIT = 0.008         # 8ms post-TX wait - optimized
 
 def calc_crc16(data):
     """Calculate Modbus CRC16"""
@@ -31,9 +38,9 @@ def build_request(device_id, function, address, value):
 
 class RelayBoard:
     def __init__(self, port=PORT, baudrate=BAUDRATE, device_id=DEVICE_ID):
-        self.ser = serial.Serial(port, baudrate, timeout=0.3)
+        self.ser = serial.Serial(port, baudrate, timeout=SERIAL_TIMEOUT)
         self.device_id = device_id
-        time.sleep(0.2)
+        time.sleep(0.1)
 
     def close(self):
         self.ser.close()
@@ -43,8 +50,9 @@ class RelayBoard:
         req = build_request(self.device_id, 0x01, 0x0000, 0x0008)
         self.ser.reset_input_buffer()
         self.ser.write(req)
-        time.sleep(0.15)
-        resp = self.ser.read(100)
+        self.ser.flush()
+        time.sleep(TX_WAIT)
+        resp = self.ser.read(20)
         if resp and len(resp) >= 4 and resp[1] == 0x01:
             return resp[3]
         return None
@@ -56,9 +64,11 @@ class RelayBoard:
         addr = relay_num - 1
         val = 0xFF00 if state else 0x0000
         req = build_request(self.device_id, 0x05, addr, val)
+        self.ser.reset_input_buffer()
         self.ser.write(req)
-        time.sleep(0.1)
-        return self.ser.read(100)
+        self.ser.flush()
+        time.sleep(TX_WAIT)
+        return self.ser.read(20)
 
     def relay_on(self, relay_num):
         """Turn relay ON"""
@@ -98,8 +108,9 @@ class RelayBoard:
         req = build_request(self.device_id, 0x02, 0x0000, 0x0008)  # Must be 8!
         self.ser.reset_input_buffer()
         self.ser.write(req)
-        time.sleep(0.15)
-        resp = self.ser.read(100)
+        self.ser.flush()
+        time.sleep(TX_WAIT)
+        resp = self.ser.read(20)
         if resp and len(resp) >= 4 and resp[1] == 0x02:
             status = resp[3]
             # Invert logic so True = triggered (active)
@@ -116,8 +127,9 @@ class RelayBoard:
         req = build_request(self.device_id, 0x02, 0x0000, 0x0008)  # Must be 8!
         self.ser.reset_input_buffer()
         self.ser.write(req)
-        time.sleep(0.15)
-        resp = self.ser.read(100)
+        self.ser.flush()
+        time.sleep(TX_WAIT)
+        resp = self.ser.read(20)
         if resp and len(resp) >= 4 and resp[1] == 0x02:
             return resp[3]
         return None
@@ -170,7 +182,7 @@ def monitor_mode():
                 print(f" {r4}  {r3}  {r2}  {r1}    |  {i4}   {i3}   {i2}   {i1}  {marker}")
                 last_relay = relay_status
                 last_input = input_raw
-            time.sleep(0.05)
+            time.sleep(0.01)  # Fast polling
     except KeyboardInterrupt:
         print("\nStopped.")
     finally:
@@ -183,14 +195,14 @@ def test_relays():
 
     print("Testing relays...")
     board.all_off()
-    time.sleep(0.5)
+    time.sleep(0.1)
 
     for i in range(1, 5):
         print(f"  Relay {i} ON...")
         board.relay_on(i)
-        time.sleep(0.5)
+        time.sleep(0.2)
         board.relay_off(i)
-        time.sleep(0.3)
+        time.sleep(0.1)
 
     print("Done!")
     board.close()

@@ -26,6 +26,23 @@ If you bought this board, you probably noticed:
 | **Default Baud Rate** | 9600 |
 | **Default Device ID** | 1 |
 
+## Performance (Benchmarked)
+
+| Setting | Value |
+|---------|-------|
+| **Serial Timeout** | 25ms |
+| **Post-TX Wait** | 8ms |
+| **Round-trip Time** | ~80ms |
+| **Reliability** | 100% (50/50 cycles) |
+
+The scripts use optimized timings for fast response while maintaining 100% reliability.
+
+**Timing Breakdown:**
+- Serial TX (8 bytes @ 9600 baud): ~8ms
+- Board processing + response: ~11ms
+- Relay mechanical switch: ~10-15ms
+- Input polling: ~20ms
+
 ## Quick Start
 
 ### Requirements

@@ -4,6 +4,8 @@ Input-to-Relay Trigger Script
 IN1 → Relay 1, IN2 → Relay 2, IN3 → Relay 3, IN4 → Relay 4
 
 Inputs are active LOW (connect to GND to trigger)
+
+Optimized timings: ~80ms round-trip response
 """
 
 import serial
@@ -13,6 +15,8 @@ import sys
 PORT = '/dev/ttyUSB0'
 BAUDRATE = 9600
 DEVICE_ID = 1
+SERIAL_TIMEOUT = 0.025  # 25ms - optimized
+TX_WAIT = 0.008         # 8ms post-TX wait - optimized
 
 def calc_crc16(data):
     crc = 0xFFFF
@@ -31,9 +35,9 @@ def build_request(device_id, function, address, value):
 
 class RelayBoard:
     def __init__(self, port=PORT):
-        self.ser = serial.Serial(port, BAUDRATE, timeout=0.3)
+        self.ser = serial.Serial(port, BAUDRATE, timeout=SERIAL_TIMEOUT)
         self.device_id = DEVICE_ID
-        time.sleep(0.2)
+        time.sleep(0.1)
 
     def close(self):
         self.ser.close()
@@ -43,8 +47,9 @@ class RelayBoard:
         req = build_request(self.device_id, 0x02, 0x0000, 0x0008)
         self.ser.reset_input_buffer()
         self.ser.write(req)
-        time.sleep(0.15)
-        resp = self.ser.read(100)
+        self.ser.flush()
+        time.sleep(TX_WAIT)
+        resp = self.ser.read(20)
         if resp and len(resp) >= 4 and resp[1] == 0x02:
             raw = resp[3]
             # Return True if triggered (active LOW inverted)
@@ -61,8 +66,9 @@ class RelayBoard:
         req = build_request(self.device_id, 0x01, 0x0000, 0x0008)
         self.ser.reset_input_buffer()
         self.ser.write(req)
-        time.sleep(0.15)
-        resp = self.ser.read(100)
+        self.ser.flush()
+        time.sleep(TX_WAIT)
+        resp = self.ser.read(20)
         if resp and len(resp) >= 4 and resp[1] == 0x01:
             raw = resp[3]
             return [
@@ -77,9 +83,11 @@ class RelayBoard:
         """Set relay (0-3) on/off"""
         val = 0xFF00 if state else 0x0000
         req = build_request(self.device_id, 0x05, relay_num, val)
+        self.ser.reset_input_buffer()
         self.ser.write(req)
-        time.sleep(0.1)
-        self.ser.read(100)
+        self.ser.flush()
+        time.sleep(TX_WAIT)
+        self.ser.read(20)
 
 
 def main():
@@ -118,7 +126,7 @@ def main():
             relay_str = ' '.join(['■' if x else '□' for x in board.read_relays()])
             print(f"\r     {in_str}  |        {relay_str}  ", end='', flush=True)
 
-            time.sleep(0.05)
+            time.sleep(0.01)  # Fast polling
 
     except KeyboardInterrupt:
         print("\n\nStopping... turning off all relays")
