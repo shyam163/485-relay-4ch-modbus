@@ -26,6 +26,17 @@ If you bought this board, you probably noticed:
 | **Default Baud Rate** | 9600 |
 | **Default Device ID** | 1 |
 
+## Chip Identification
+
+| Chip | Function |
+|------|----------|
+| **3PEAK TP8485E** | RS485 transceiver (MAX485 compatible) |
+| **TWS817** | Optocoupler for isolated inputs |
+| **AMS1117** | Voltage regulator |
+| **20-pin unmarked** | Main MCU (Modbus firmware) |
+
+The TP8485E is a Chinese MAX485 clone. The unmarked 20-pin MCU (likely STM8, STC, or CH32) runs the Modbus RTU firmware and is responsible for the board's quirks (9600 baud only, 8-bit read requirement).
+
 ## Performance (Benchmarked)
 
 | Setting | Value |
