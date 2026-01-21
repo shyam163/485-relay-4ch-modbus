@@ -1,6 +1,6 @@
 # 485 Relay 4CH v1.1 - Modbus RTU Control
 
-> **Finally!** Complete documentation for the mysterious Chinese "485 Relay 4CH v1.1" Modbus RTU relay board that has virtually no documentation online.
+> **Finally!** Documentation for the mysterious "485 Relay 4CH v1.1" Modbus RTU relay board that has virtually no documentation online.
 
 ![485 Relay 4CH v1.1 Board](images/board.jpg)
 
@@ -10,7 +10,7 @@ If you bought this board, you probably noticed:
 - No English documentation
 - No datasheet
 - Relays work with trial and error, but **inputs don't seem to respond**
-- Generic Chinese listings with no register maps
+- Generic listings with no register maps
 
 **This repository solves that.** We reverse-engineered the Modbus registers and discovered the quirks that make the inputs work.
 
@@ -283,4 +283,4 @@ Reverse-engineered with patience and a logic analyzer. If this saved you hours o
 
 ---
 
-**Keywords for search:** 485 relay 4ch, modbus relay board, chinese relay board, modbus rtu relay, 4 channel relay modbus, relay board inputs not working, modbus discrete inputs
+**Keywords for search:** 485 relay 4ch, modbus relay board, modbus rtu relay, 4 channel relay modbus, relay board inputs not working, modbus discrete inputs
