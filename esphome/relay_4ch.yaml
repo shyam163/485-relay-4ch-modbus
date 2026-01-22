@@ -59,10 +59,38 @@ modbus_controller:
     command_throttle: 50ms  # Min 50ms between commands
 
 # =============================================================================
+# GLOBAL VARIABLE: Enable/Disable Input-to-Relay Automation
+# =============================================================================
+globals:
+  - id: input_relay_enabled
+    type: bool
+    restore_value: yes
+    initial_value: 'true'
+
+# =============================================================================
 # RELAY SWITCHES (Function 05 - Write Single Coil)
 # Address 0x0000-0x0003 for Relay 1-4
 # =============================================================================
 switch:
+  # Toggle for Input-to-Relay automation
+  - platform: template
+    name: "Input-to-Relay Auto"
+    id: input_relay_auto
+    icon: "mdi:link-variant"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    lambda: |-
+      return id(input_relay_enabled);
+    turn_on_action:
+      - globals.set:
+          id: input_relay_enabled
+          value: 'true'
+      - logger.log: "Input-to-Relay automation ENABLED"
+    turn_off_action:
+      - globals.set:
+          id: input_relay_enabled
+          value: 'false'
+      - logger.log: "Input-to-Relay automation DISABLED"
   - platform: modbus_controller
     modbus_controller_id: relay_board
     name: "Relay 1"
@@ -99,6 +127,7 @@ switch:
 # OPTO-ISOLATED INPUTS (Function 02 - Read Discrete Inputs)
 # Address 0x0000, bits 0-3 for Input 1-4
 # Inputs are ACTIVE LOW: 0 = triggered, 1 = not triggered
+# Input-to-Relay automation: IN1→R1, IN2→R2, IN3→R3, IN4→R4
 # =============================================================================
 binary_sensor:
   - platform: modbus_controller
@@ -111,6 +140,22 @@ binary_sensor:
     icon: "mdi:electric-switch-closed"
     filters:
       - invert:  # Active LOW - invert so ON = triggered
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(input_relay_enabled);'
+            then:
+              - switch.turn_on: relay_1
+              - logger.log: "Input 1 triggered → Relay 1 ON"
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(input_relay_enabled);'
+            then:
+              - switch.turn_off: relay_1
+              - logger.log: "Input 1 released → Relay 1 OFF"
 
   - platform: modbus_controller
     modbus_controller_id: relay_board
@@ -122,6 +167,22 @@ binary_sensor:
     icon: "mdi:electric-switch-closed"
     filters:
       - invert:
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(input_relay_enabled);'
+            then:
+              - switch.turn_on: relay_2
+              - logger.log: "Input 2 triggered → Relay 2 ON"
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(input_relay_enabled);'
+            then:
+              - switch.turn_off: relay_2
+              - logger.log: "Input 2 released → Relay 2 OFF"
 
   - platform: modbus_controller
     modbus_controller_id: relay_board
@@ -133,6 +194,22 @@ binary_sensor:
     icon: "mdi:electric-switch-closed"
     filters:
       - invert:
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(input_relay_enabled);'
+            then:
+              - switch.turn_on: relay_3
+              - logger.log: "Input 3 triggered → Relay 3 ON"
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(input_relay_enabled);'
+            then:
+              - switch.turn_off: relay_3
+              - logger.log: "Input 3 released → Relay 3 OFF"
 
   - platform: modbus_controller
     modbus_controller_id: relay_board
@@ -144,20 +221,19 @@ binary_sensor:
     icon: "mdi:electric-switch-closed"
     filters:
       - invert:
-
-# =============================================================================
-# OPTIONAL: Input-to-Relay Automation
-# Uncomment to make inputs directly control relays
-# =============================================================================
-# automation:
-#   - id: input1_to_relay1
-#     trigger:
-#       - platform: state
-#         entity_id: binary_sensor.input_1
-#     action:
-#       - switch.turn_on: relay_1
-#         condition:
-#           - binary_sensor.is_on: input_1
-#       - switch.turn_off: relay_1
-#         condition:
-#           - binary_sensor.is_off: input_1
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(input_relay_enabled);'
+            then:
+              - switch.turn_on: relay_4
+              - logger.log: "Input 4 triggered → Relay 4 ON"
+    on_release:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(input_relay_enabled);'
+            then:
+              - switch.turn_off: relay_4
+              - logger.log: "Input 4 released → Relay 4 OFF"
