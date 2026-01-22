@@ -279,6 +279,39 @@ def calc_crc16(data):
     return crc.to_bytes(2, 'little')
 ```
 
+## ESPHome / Home Assistant Integration
+
+This board can be controlled via ESPHome using an ESP32 as a Modbus master.
+
+### Wiring (XIAO ESP32-S3 → TTL)
+
+```
+XIAO ESP32-S3          Relay Board TTL Header
+───────────────────────────────────────────────
+D3 (GPIO4) TX    →     RX
+D4 (GPIO5) RX    →     TX
+GND              →     GND
+(Don't connect VCC - board has its own 5V)
+```
+
+### Quick Start
+
+1. Copy `esphome/relay_4ch.yaml` to your ESPHome config directory
+2. Create `secrets.yaml` from `secrets.yaml.example`
+3. Flash to your ESP32:
+   ```bash
+   esphome run relay_4ch.yaml
+   ```
+
+### Features
+
+- 4 relay switches (ON/OFF control)
+- 4 binary sensors for opto-isolated inputs
+- Home Assistant auto-discovery
+- 500ms polling interval
+
+See `esphome/` folder for full configuration.
+
 ## Hardware Photos
 
 The board has these main components:
